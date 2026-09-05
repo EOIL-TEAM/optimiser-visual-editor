@@ -45,3 +45,17 @@ OVE treats recorded values as authoritative. Application rollouts and cost decom
 The desktop application accepts either a complete OVE workspace or one raw run JSON file from the ARENA quadrotor harness. A raw run is assigned a generic imported passage because the original artifact does not contain all problem metadata.
 
 The next schema revision will add immutable problem manifests, full gradients and directions, objective-component telemetry, system-state channels, constraint channels, units, and event provenance identifiers.
+
+## Counterfactual checkpoint archive
+
+Branch-analysis schema `0.2.0` adds a compressed checkpoint archive keyed by election identifier. Each frozen post-election checkpoint contains:
+
+- operative and native points;
+- operative and certified native gradients;
+- complete parent and elected-candidate metrics;
+- structural evidence `s`, `p`, `r`, and `q`;
+- the authoritative scalar judgement.
+
+At an elected post-section state, SORF has no pending candidate. These arrays, the declared representation, and the immutable problem declaration therefore constitute the complete state needed to recreate the next proposal. The callable objective provenance is restored from the declared experiment code rather than serialised.
+
+Every analysis records seven continuations, a historical-reproduction residual, immediate ray values through `2^-30`, twelve-iteration objective histories, metric conditioning, gradient alignment, constraint measurements, and application trajectories. Interpolated candidates follow the affine-invariant SPD geodesic between parent and candidate; because the endpoint determinants agree, the interpolants preserve that determinant.

@@ -1,6 +1,7 @@
-import { AlertCircle, BarChart3, ChevronDown, CircleHelp, Columns3, Download, FolderOpen, Gauge, Maximize2, Menu, Mountain, Play, ScanSearch, Settings2, Sparkles } from "lucide-react";
+import { AlertCircle, BarChart3, ChevronDown, CircleHelp, Columns3, Download, FolderOpen, Gauge, GitBranch, Maximize2, Menu, Mountain, Play, ScanSearch, Settings2, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CompareView } from "./components/CompareView";
+import { BranchLab } from "./components/BranchLab";
 import { ControlTracks } from "./components/ControlTracks";
 import { EvidenceView } from "./components/EvidenceView";
 import { FlightViewport } from "./components/FlightViewport";
@@ -8,15 +9,16 @@ import { Inspector } from "./components/Inspector";
 import { IterationTimeline } from "./components/IterationTimeline";
 import { LineChart, Panel } from "./components/Charts";
 import { RunSidebar } from "./components/RunSidebar";
-import { loadBundledWorkspace, normaliseImportedTrace } from "./lib/data";
+import { loadBranchAnalyses, loadBundledWorkspace, normaliseImportedTrace } from "./lib/data";
 import { formatNumber, humanize, optimizerLabel, representationLabel } from "./lib/format";
 import { objectiveBreakdown, simulatePassage } from "./lib/physics";
-import type { MainView, OptimizerRun, WorkspaceData } from "./types";
+import type { BranchAnalysisWorkspace, MainView, OptimizerRun, WorkspaceData } from "./types";
 
 type CanvasMode = "system" | "search" | "split";
 
 export default function App() {
   const [workspace, setWorkspace] = useState<WorkspaceData | null>(null);
+  const [branchAnalyses, setBranchAnalyses] = useState<BranchAnalysisWorkspace | null>(null);
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [view, setView] = useState<MainView>("studio");
   const [passageId, setPassageId] = useState("short_aggressive");
@@ -28,7 +30,10 @@ export default function App() {
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
-    loadBundledWorkspace().then(setWorkspace).catch((error: Error) => setLoadingError(error.message));
+    Promise.all([loadBundledWorkspace(), loadBranchAnalyses()]).then(([workspaceData, analysisData]) => {
+      setWorkspace(workspaceData);
+      setBranchAnalyses(analysisData);
+    }).catch((error: Error) => setLoadingError(error.message));
   }, []);
 
   const passage = useMemo(() => workspace?.passages.find((item) => item.id === passageId) ?? workspace?.passages[0], [workspace, passageId]);
@@ -138,6 +143,7 @@ export default function App() {
           </div>
         )}
         {view === "compare" && <CompareView runs={passageRuns} passage={passage} representation={run.representation} onRepresentation={(value) => { const next = passageRuns.find((item) => item.optimizer === run.optimizer && item.representation === value) ?? passageRuns.find((item) => item.representation === value); if (next) selectRun(next.id); }} onOpenRun={(id, index) => { selectRun(id, index); setView("studio"); }} />}
+        {view === "branches" && branchAnalyses && <BranchLab analyses={branchAnalyses} workspace={workspace} onOpenOriginal={(id, index) => { selectRun(id, index); setView("studio"); }} />}
         {view === "evidence" && <EvidenceView workspace={workspace} onOpenRun={(id, index) => { selectRun(id, index); setView("studio"); }} />}
       </div>
       {toast && <div className="toast"><AlertCircle />{toast}</div>}
@@ -146,7 +152,7 @@ export default function App() {
 }
 
 function AppHeader({ workspace, view, onView, onImport }: { workspace: WorkspaceData; view: MainView; onView: (view: MainView) => void; onImport: () => void }) {
-  return <header className="app-header"><div className="brand"><span className="brand-mark"><Mountain /></span><div><strong>Optimiser</strong><span>Visual Editor</span></div><em>ALPHA</em></div><nav><button className={view === "studio" ? "active" : ""} onClick={() => onView("studio")}><Play />Studio</button><button className={view === "compare" ? "active" : ""} onClick={() => onView("compare")}><BarChart3 />Compare</button><button className={view === "evidence" ? "active" : ""} onClick={() => onView("evidence")}><ScanSearch />Evidence</button></nav><div className="workspace-title"><small>Workspace</small><strong>{workspace.name}</strong><ChevronDown /></div><div className="header-actions"><button title="Open trace" onClick={onImport}><FolderOpen /></button><button title="Export snapshot" onClick={() => window.print()}><Download /></button><button title="Settings"><Settings2 /></button><button title="Help"><CircleHelp /></button><button title="Menu"><Menu /></button></div></header>;
+  return <header className="app-header"><div className="brand"><span className="brand-mark"><Mountain /></span><div><strong>Optimiser</strong><span>Visual Editor</span></div><em>ALPHA</em></div><nav><button className={view === "studio" ? "active" : ""} onClick={() => onView("studio")}><Play />Studio</button><button className={view === "compare" ? "active" : ""} onClick={() => onView("compare")}><BarChart3 />Compare</button><button className={view === "branches" ? "active" : ""} onClick={() => onView("branches")}><GitBranch />Branches</button><button className={view === "evidence" ? "active" : ""} onClick={() => onView("evidence")}><ScanSearch />Evidence</button></nav><div className="workspace-title"><small>Workspace</small><strong>{workspace.name}</strong><ChevronDown /></div><div className="header-actions"><button title="Open trace" onClick={onImport}><FolderOpen /></button><button title="Export snapshot" onClick={() => window.print()}><Download /></button><button title="Settings"><Settings2 /></button><button title="Help"><CircleHelp /></button><button title="Menu"><Menu /></button></div></header>;
 }
 
 function KpiStrip({ run, frame }: { run: OptimizerRun; frame: OptimizerRun["trace"][number] }) {

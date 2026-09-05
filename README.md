@@ -4,7 +4,7 @@
 
 Optimiser Visual Editor (OVE) is a desktop record/replay environment that connects an optimiser's internal decisions to their real-system consequences. It is designed as an optimiser-agnostic workbench; SORF is the first deeply instrumented optimiser inside it, not the product boundary.
 
-## First release
+## Current release
 
 The application ships with the complete declared SORF quadrotor evidence workspace:
 
@@ -20,6 +20,20 @@ The application ships with the complete declared SORF quadrotor evidence workspa
 - side-by-side optimiser and representation comparisons;
 - an indexed evidence room for decisive events;
 - import of OVE workspaces and raw ARENA run JSON files.
+
+### Counterfactual Branch Lab
+
+Version 0.2 freezes the complete post-election state at every recorded SORF election and replays seven parallel continuations:
+
+- elected candidate under SORF;
+- retained parent under SORF;
+- determinant-preserving affine-invariant candidate interpolations at 25%, 50%, and 75%;
+- retained parent followed by conventional BFGS updates;
+- elected candidate followed by conventional BFGS updates.
+
+The bundled laboratory contains 73 election checkpoints. Each branch is evaluated for immediate line-search reachability and twelve subsequent optimiser iterations, with comparisons of direction scale, gradient alignment, objective efficiency, metric spectrum, constraints, and quadrotor behaviour. Full checkpoint arrays are preserved in `public/data/branch-checkpoints.npz`.
+
+The admitted candidate branch is required to reproduce the historical continuation before its counterfactual siblings are treated as evidence.
 
 The default scene opens the native short-aggressive SORF passage at iteration 44: the second candidate is elected, metric conditioning reaches approximately `1.55e13`, and the following extension fails.
 
@@ -50,6 +64,7 @@ Regenerate the bundled workspace from the adjacent `ARENA_QUADROTOR_EXPERIMENT` 
 
 ```bash
 npm run export:data
+npm run export:branches
 ```
 
 ## Evidence integrity

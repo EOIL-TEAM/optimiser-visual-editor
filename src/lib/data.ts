@@ -1,9 +1,15 @@
-import type { OptimizerRun, PassageDefinition, WorkspaceData } from "../types";
+import type { BranchAnalysisWorkspace, OptimizerRun, PassageDefinition, WorkspaceData } from "../types";
 
 export async function loadBundledWorkspace(): Promise<WorkspaceData> {
   const response = await fetch("./data/quadrotor-workspace.json");
   if (!response.ok) throw new Error(`Could not load bundled workspace (${response.status})`);
   return response.json() as Promise<WorkspaceData>;
+}
+
+export async function loadBranchAnalyses(): Promise<BranchAnalysisWorkspace> {
+  const response = await fetch("./data/branch-analyses.json");
+  if (!response.ok) throw new Error(`Could not load branch analyses (${response.status})`);
+  return response.json() as Promise<BranchAnalysisWorkspace>;
 }
 
 export function normaliseImportedTrace(value: unknown, filename: string): WorkspaceData {

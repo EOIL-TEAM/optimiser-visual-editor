@@ -100,4 +100,94 @@ export interface ObjectiveBreakdown {
   total: number;
 }
 
-export type MainView = "studio" | "compare" | "evidence";
+export interface SystemConsequence {
+  terminal_position_error: number;
+  maximum_position_error: number;
+  terminal_attitude_error: number;
+  control_energy: number;
+  minimum_rotor_force: number;
+  maximum_rotor_force: number;
+  constraint_violation_count: number;
+  maximum_constraint_violation: number;
+  trajectory: number[][];
+}
+
+export interface BranchDirection {
+  operative_norm: number;
+  native_norm: number;
+  directional_derivative: number;
+  cosine_to_negative_gradient: number;
+  gradient_alignment_minimum_eigenvector: number;
+  gradient_alignment_maximum_eigenvector: number;
+  native_components: number[];
+}
+
+export interface CounterfactualBranch {
+  id: string;
+  label: string;
+  family: "sorf" | "bfgs";
+  interpolation: number;
+  start_value: number;
+  final_value: number;
+  stop_reason: string;
+  iterations: number;
+  adoptions: number;
+  objective_evaluations: number;
+  objective_efficiency: number;
+  direction: BranchDirection;
+  metric: MetricSummary & { eigenvalue_quantiles: number[] };
+  immediate: {
+    adopted: boolean;
+    alpha: number | null;
+    value: number;
+    reduction: number;
+    line_search_values: number[];
+    diagnostic_ray_values: number[];
+    first_improving_exponent: number | null;
+    system: SystemConsequence;
+  };
+  multi: {
+    values: number[];
+    cumulative_evaluations: number[];
+    conditions: number[];
+    native_gradient_norms: number[];
+    final_system: SystemConsequence;
+  };
+}
+
+export interface BranchAnalysis {
+  id: string;
+  run_id: string;
+  passage: string;
+  representation: string;
+  election_iteration: number;
+  outcome: "failed_next_extension" | "survived_next_extension";
+  checkpoint: {
+    archive_key: string;
+    value: number;
+    native_gradient_norm: number;
+    parent_metric: MetricSummary & { eigenvalue_quantiles: number[] };
+    candidate_metric: MetricSummary & { eigenvalue_quantiles: number[] };
+    election_scores: { parent: number; child: number };
+    s_norm: number;
+    p_norm: number;
+    r_norm: number;
+    q: number;
+  };
+  reproduction: {
+    compared_iterations: number;
+    maximum_value_residual: number;
+    passed: boolean;
+  };
+  branches: CounterfactualBranch[];
+}
+
+export interface BranchAnalysisWorkspace {
+  schema_version: string;
+  created_at: string;
+  continuation_iterations: number;
+  engine: string;
+  analyses: BranchAnalysis[];
+}
+
+export type MainView = "studio" | "compare" | "branches" | "evidence";
