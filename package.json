@@ -1,0 +1,58 @@
+{
+  "name": "optimiser-visual-editor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A visual development environment for understanding, debugging and comparing optimisation systems.",
+  "desktopName": "optimiser-visual-editor",
+  "author": "EOINCLTD",
+  "license": "MIT",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "node node_modules/concurrently/dist/bin/concurrently.js -k \"node node_modules/vite/bin/vite.js\" \"node node_modules/wait-on/bin/wait-on http://127.0.0.1:5173 && VITE_DEV_SERVER_URL=http://127.0.0.1:5173 node node_modules/electron/cli.js .\"",
+    "build": "node node_modules/typescript/bin/tsc -b && node node_modules/vite/bin/vite.js build",
+    "preview": "node node_modules/vite/bin/vite.js preview",
+    "desktop": "npm run build && node node_modules/electron/cli.js .",
+    "dist": "npm run build && node scripts/package-linux.mjs",
+    "export:data": "python3 scripts/export_quadrotor_workspace.py",
+    "test": "node node_modules/vitest/vitest.mjs run"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "lucide-react": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "concurrently": "latest",
+    "electron": "latest",
+    "electron-builder": "latest",
+    "typescript": "latest",
+    "vite": "latest",
+    "vitest": "latest",
+    "wait-on": "latest"
+  },
+  "build": {
+    "appId": "com.eoincltd.optimiservisualeditor",
+    "productName": "Optimiser Visual Editor",
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Development",
+      "icon": "build/icon.png",
+      "synopsis": "Visual debugger and workbench for optimisation systems",
+      "artifactName": "Optimiser-Visual-Editor-${version}-${arch}.${ext}",
+      "syncDesktopName": true
+    }
+  }
+}
