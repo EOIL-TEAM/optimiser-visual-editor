@@ -1,6 +1,6 @@
 {
   "name": "optimiser-visual-editor",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "description": "A visual development environment for understanding, debugging and comparing optimisation systems.",

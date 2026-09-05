@@ -9,7 +9,7 @@ const temporaryOutput = mkdtempSync(join(tmpdir(), "ove-release-"));
 const builder = join(appRoot, "node_modules", "electron-builder", "out", "cli", "cli.js");
 
 try {
-  execFileSync(process.execPath, [builder, "--linux", "AppImage", `--config.directories.output=${temporaryOutput}`], {
+  execFileSync(process.execPath, [builder, "--linux", "AppImage", "--publish", "never", `--config.directories.output=${temporaryOutput}`], {
     cwd: appRoot,
     stdio: "inherit",
   });
