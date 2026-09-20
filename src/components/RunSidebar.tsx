@@ -25,8 +25,8 @@ export function RunSidebar({ workspace, passage, run, onPassage, onRun }: Props)
         </label>
         <p className="sidebar-description">{passage.purpose}</p>
         <div className="problem-facts">
-          <span><b>{passage.horizon * 2}</b> variables</span>
-          <span><b>{formatNumber(passage.horizon * passage.dt, 2)} s</b> system time</span>
+          <span><b>{passage.kind === "surface" ? 2 : passage.horizon * 2}</b> variables</span>
+          <span><b>{passage.kind === "surface" ? passage.surface?.function : `${formatNumber(passage.horizon * passage.dt, 2)} s`}</b> {passage.kind === "surface" ? "function" : "system time"}</span>
         </div>
       </div>
 
@@ -40,7 +40,7 @@ export function RunSidebar({ workspace, passage, run, onPassage, onRun }: Props)
             return (
               <button key={item.id} className={`run-card ${selected ? "selected" : ""}`} onClick={() => onRun(item.id)}>
                 <span className={`optimizer-mark optimizer-${item.optimizer}`}>
-                  {item.optimizer === "sorf" ? <Activity size={15} /> : item.optimizer === "bfgs" ? <GitCompareArrows size={15} /> : <Layers3 size={15} />}
+                  {item.optimizer.includes("sorf") ? <Activity size={15} /> : item.optimizer === "bfgs" ? <GitCompareArrows size={15} /> : <Layers3 size={15} />}
                 </span>
                 <span className="run-card-copy">
                   <strong>{optimizerLabel(item.optimizer)}</strong>

@@ -1,4 +1,4 @@
-export type OptimizerName = "sorf" | "steepest_descent" | "bfgs" | string;
+export type OptimizerName = "sorf" | "transient_sorf" | "steepest_descent" | "bfgs" | string;
 export type RepresentationName = "native" | "fixed_linear_shear" | "fixed_nonlinear_cubic" | string;
 
 export interface MetricSummary {
@@ -38,10 +38,15 @@ export interface TraceFrame {
   p?: number[] | null;
   r?: number[] | null;
   q?: number | null;
-  z_after: number[];
+  z_after?: number[];
   native_after: number[];
   metric_before?: MetricSummary;
   metric_after: MetricSummary;
+  elapsed_seconds?: number;
+  setup_seconds?: number;
+  derivative_seconds?: number;
+  solve_seconds?: number;
+  search_seconds?: number;
 }
 
 export interface OptimizerRun {
@@ -53,12 +58,21 @@ export interface OptimizerRun {
   stop_reason: string;
   objective_evaluations: number;
   final_value: number;
+  wall_seconds?: number;
+  timings?: { setup_seconds: number; derivative_seconds: number; solve_seconds: number; search_seconds: number };
 }
 
 export interface PassageDefinition {
   id: string;
   label: string;
   purpose: string;
+  kind?: "quadrotor" | "surface";
+  surface?: {
+    function: "quadratic" | "rastrigin";
+    x_domain: [number, number];
+    y_domain: [number, number];
+    optimum: [number, number];
+  };
   horizon: number;
   dt: number;
   initial_state: number[];

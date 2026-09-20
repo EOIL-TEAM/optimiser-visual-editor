@@ -1,9 +1,21 @@
 import type { BranchAnalysisWorkspace, OptimizerRun, PassageDefinition, WorkspaceData } from "../types";
 
 export async function loadBundledWorkspace(): Promise<WorkspaceData> {
-  const response = await fetch("./data/quadrotor-workspace.json");
-  if (!response.ok) throw new Error(`Could not load bundled workspace (${response.status})`);
-  return response.json() as Promise<WorkspaceData>;
+  const [quadrotorResponse, surfaceResponse] = await Promise.all([
+    fetch("./data/quadrotor-workspace.json"),
+    fetch("./data/surface-workspace.json"),
+  ]);
+  if (!quadrotorResponse.ok) throw new Error(`Could not load quadrotor workspace (${quadrotorResponse.status})`);
+  if (!surfaceResponse.ok) throw new Error(`Could not load surface workspace (${surfaceResponse.status})`);
+  const [workspace, surfaces] = await Promise.all([
+    quadrotorResponse.json() as Promise<WorkspaceData>,
+    surfaceResponse.json() as Promise<WorkspaceData>,
+  ]);
+  return {
+    ...workspace,
+    passages: [...surfaces.passages, ...workspace.passages],
+    runs: [...surfaces.runs, ...workspace.runs],
+  };
 }
 
 export async function loadBranchAnalyses(): Promise<BranchAnalysisWorkspace> {
