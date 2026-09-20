@@ -37,6 +37,15 @@ The admitted candidate branch is required to reproduce the historical continuati
 
 The default scene opens the native short-aggressive SORF passage at iteration 44: the second candidate is elected, metric conditioning reaches approximately `1.55e13`, and the following extension fails.
 
+The bundled workspace also includes two conventional two-dimensional optimisation scenes:
+
+- a convex quadratic bowl;
+- a non-convex Rastrigin landscape.
+
+Each includes deterministic traces produced by the admitted Python SORF kernel and the matched steepest-descent and full-BFGS harness, with a sampled 3-D objective surface and iteration-by-iteration search path. The editor never synthesises optimiser results. Select either benchmark from the **Problem** menu; the quadrotor passages remain available in the same workspace.
+
+The bundled quadrotor workspace keeps the complete native solver comparison for every passage and the full representation matrix for the short-aggressive and diagonal-sprint diagnostic passages. Raw campaign collections remain in the research repository's checksummed data archive rather than being copied into the desktop bundle. Both exporters accept `--experiment-root` when the research repository is not checked out beside this project.
+
 ## Run locally
 
 Requires Node.js 22 or newer.

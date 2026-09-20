@@ -5,6 +5,7 @@ import { BranchLab } from "./components/BranchLab";
 import { ControlTracks } from "./components/ControlTracks";
 import { EvidenceView } from "./components/EvidenceView";
 import { FlightViewport } from "./components/FlightViewport";
+import { SurfaceViewport } from "./components/SurfaceViewport";
 import { Inspector } from "./components/Inspector";
 import { IterationTimeline } from "./components/IterationTimeline";
 import { LineChart, Panel } from "./components/Charts";
@@ -21,9 +22,9 @@ export default function App() {
   const [branchAnalyses, setBranchAnalyses] = useState<BranchAnalysisWorkspace | null>(null);
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [view, setView] = useState<MainView>("studio");
-  const [passageId, setPassageId] = useState("short_aggressive");
-  const [runId, setRunId] = useState("short_aggressive__native__sorf");
-  const [iteration, setIteration] = useState(44);
+  const [passageId, setPassageId] = useState("diagonal_sprint");
+  const [runId, setRunId] = useState("diagonal_sprint__native__projective_sorf_ls_v1");
+  const [iteration, setIteration] = useState(59);
   const [timeIndex, setTimeIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [canvasMode, setCanvasMode] = useState<CanvasMode>("split");
@@ -40,12 +41,13 @@ export default function App() {
   const run = useMemo(() => workspace?.runs.find((item) => item.id === runId) ?? workspace?.runs.find((item) => item.passage === passage?.id), [workspace, runId, passage]);
   const frame = run?.trace[Math.min(iteration, Math.max(0, run.trace.length - 1))];
   const native = frame?.native_after ?? [];
-  const samples = useMemo(() => passage ? simulatePassage(native, passage) : [], [native, passage]);
-  const breakdown = useMemo(() => passage && samples.length ? objectiveBreakdown(native, passage, samples) : null, [native, passage, samples]);
+  const isSurface = passage?.kind === "surface";
+  const samples = useMemo(() => passage && !isSurface ? simulatePassage(native, passage) : [], [native, passage, isSurface]);
+  const breakdown = useMemo(() => passage && !isSurface && samples.length ? objectiveBreakdown(native, passage, samples) : null, [native, passage, samples, isSurface]);
 
   const selectPassage = useCallback((id: string) => {
     if (!workspace) return;
-    const nextRun = workspace.runs.find((item) => item.passage === id && item.optimizer === "sorf" && item.representation === "native") ?? workspace.runs.find((item) => item.passage === id);
+    const nextRun = workspace.runs.find((item) => item.passage === id && item.optimizer === "projective_sorf_ls_v1" && item.representation === "native") ?? workspace.runs.find((item) => item.passage === id && item.optimizer === "projective_sorf_ls_v0" && item.representation === "native") ?? workspace.runs.find((item) => item.passage === id);
     setPassageId(id);
     if (nextRun) { setRunId(nextRun.id); setIteration(Math.max(0, nextRun.trace.length - 1)); }
     setTimeIndex(0);
@@ -113,7 +115,7 @@ export default function App() {
   }
 
   if (loadingError) return <div className="loading-screen error"><AlertCircle /><h1>Workspace could not be opened</h1><p>{loadingError}</p></div>;
-  if (!workspace || !passage || !run || !frame || !breakdown) return <div className="loading-screen"><div className="loader-mark"><Sparkles /></div><h1>Opening evidence workspace</h1><p>Indexing optimiser decisions and system states…</p></div>;
+  if (!workspace || !passage || !run || !frame) return <div className="loading-screen"><div className="loader-mark"><Sparkles /></div><h1>Opening evidence workspace</h1><p>Indexing optimiser decisions and system states…</p></div>;
 
   const passageRuns = workspace.runs.filter((item) => item.passage === passage.id);
   const representations = [...new Set(passageRuns.map((item) => item.representation))];
@@ -134,11 +136,11 @@ export default function App() {
                 </div>
               </div>
               <KpiStrip run={run} frame={frame} />
-              {(canvasMode === "system" || canvasMode === "split") && <Panel title="System playback" eyebrow={`Iteration ${iteration} · retained programme`} className="viewport-panel" action={<EvidenceBadge frame={frame} />}><FlightViewport samples={samples} passage={passage} timeIndex={timeIndex} onTimeIndex={setTimeIndex} /></Panel>}
+              {(canvasMode === "system" || canvasMode === "split") && <Panel title={isSurface ? "Objective landscape" : "System playback"} eyebrow={`Iteration ${iteration} · retained ${isSurface ? "point" : "programme"}`} className="viewport-panel" action={<EvidenceBadge frame={frame} />}>{isSurface ? <SurfaceViewport passage={passage} trace={run.trace} iteration={iteration} /> : <FlightViewport samples={samples} passage={passage} timeIndex={timeIndex} onTimeIndex={setTimeIndex} />}</Panel>}
               {(canvasMode === "search" || canvasMode === "split") && <SearchLens run={run} iteration={iteration} onIteration={setIteration} />}
-              <ControlTracks samples={samples} passage={passage} timeIndex={timeIndex} onTimeIndex={setTimeIndex} />
+              {!isSurface && <ControlTracks samples={samples} passage={passage} timeIndex={timeIndex} onTimeIndex={setTimeIndex} />}
             </main>
-            <Inspector frame={frame} breakdown={breakdown} />
+            <Inspector frame={frame} breakdown={breakdown} surface={passage.surface} />
             <IterationTimeline run={run} index={iteration} onIndex={setIteration} playing={playing} onPlaying={setPlaying} />
           </div>
         )}

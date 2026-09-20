@@ -1,16 +1,17 @@
 import { AlertTriangle, ArrowDownRight, CheckCircle2, CircleDot, GitCommitHorizontal, Info, ScanLine } from "lucide-react";
 import { useState } from "react";
 import type { ReactNode } from "react";
-import type { ObjectiveBreakdown, TraceFrame } from "../types";
+import type { ObjectiveBreakdown, PassageDefinition, TraceFrame } from "../types";
 import { compactVector, formatNumber, humanize } from "../lib/format";
 import { MetricBar } from "./Charts";
 
 interface Props {
   frame: TraceFrame;
-  breakdown: ObjectiveBreakdown;
+  breakdown: ObjectiveBreakdown | null;
+  surface?: PassageDefinition["surface"];
 }
 
-export function Inspector({ frame, breakdown }: Props) {
+export function Inspector({ frame, breakdown, surface }: Props) {
   const [tab, setTab] = useState<"decision" | "objective" | "evidence">("decision");
   const event = !frame.adopted ? "Line search failed" : frame.elected ? "Candidate elected" : frame.refused ? "Candidate refused" : frame.nominated ? "Candidate nominated" : "Movement adopted";
   const eventTone = !frame.adopted ? "danger" : frame.elected ? "accent" : frame.refused ? "warning" : "success";
@@ -59,15 +60,16 @@ export function Inspector({ frame, breakdown }: Props) {
       )}
       {tab === "objective" && (
         <div className="inspector-content">
-          <div className="objective-total"><small>Reconstructed objective</small><strong>{formatNumber(breakdown.total, 5)}</strong><span>Directly recalculated from the retained native control programme.</span></div>
-          <InspectorSection title="Cost constitution">
+          <div className="objective-total"><small>{surface ? "Recorded benchmark objective" : "Reconstructed objective"}</small><strong>{formatNumber(surface ? frame.value_after : breakdown?.total, 5)}</strong><span>{surface ? `Evaluated on the ${humanize(surface.function)} surface at the retained point.` : "Directly recalculated from the retained native control programme."}</span></div>
+          {breakdown && <InspectorSection title="Cost constitution">
             <Breakdown label="Terminal state" value={breakdown.terminal} total={breakdown.total} colour="#ffb357" />
             <Breakdown label="Running tracking" value={breakdown.tracking} total={breakdown.total} colour="#7bdff2" />
             <Breakdown label="Actuator limits" value={breakdown.actuator} total={breakdown.total} colour="#fb7185" />
             <Breakdown label="Control effort" value={breakdown.control} total={breakdown.total} colour="#a7f3d0" />
             <Breakdown label="Smoothness" value={breakdown.smoothness} total={breakdown.total} colour="#c4b5fd" />
-          </InspectorSection>
-          <div className="provenance-note"><Info size={14} /><span>The breakdown is derived for display. The recorded scalar remains the authoritative optimisation judgement.</span></div>
+          </InspectorSection>}
+          {surface && <InspectorSection title="Benchmark definition"><Property label="Function" value={humanize(surface.function)} /><Property label="x domain" value={`${surface.x_domain[0]} to ${surface.x_domain[1]}`} /><Property label="y domain" value={`${surface.y_domain[0]} to ${surface.y_domain[1]}`} /><Property label="Global optimum" value={`(${surface.optimum.join(", ")})`} /></InspectorSection>}
+          <div className="provenance-note"><Info size={14} /><span>{surface ? "The surface and path are sampled from the declared benchmark function." : "The breakdown is derived for display. The recorded scalar remains the authoritative optimisation judgement."}</span></div>
         </div>
       )}
       {tab === "evidence" && (
